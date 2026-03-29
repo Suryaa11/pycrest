@@ -5,7 +5,7 @@ from bson import ObjectId
 from fastapi import HTTPException
 
 from ..database.mongo import get_db
-from ..services.audit_service import write_audit_log
+from .audit_service import write_audit_log
 from ..utils.serializers import normalize_doc
 
 

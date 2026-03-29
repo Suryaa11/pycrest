@@ -1,6 +1,5 @@
-
 from datetime import datetime
-from ..database.mongo import get_db
+from app.database.mongo import get_db
 
 DEFAULT_SETTINGS = {
     "personal_loan_interest": 12.0,

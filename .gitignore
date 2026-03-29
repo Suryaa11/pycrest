@@ -1,1 +1,22 @@
-/frontend/node_modules
+# --- Python Specific ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+
+# --- Node/Frontend Specific ---
+node_modules/
+.pnp
+.pnp.js
+dist/
+build/
+.DS_Store
+
+# --- Service Specific Cache ---
+services/**/__pycache__/
+services/**/.env
+
+# --- IDE Specific ---
+.vscode/
+.idea/
+*.swp

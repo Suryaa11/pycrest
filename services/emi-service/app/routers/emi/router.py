@@ -1,15 +1,14 @@
 from fastapi import APIRouter, Depends
-
-from ....core.security import require_roles
-from ....models.enums import Roles
-from ..service import (
+from app.core.security import require_roles
+from app.models.enums import Roles
+from app.routers.emi.service import (
     apply_emi_penalty,
     list_emi_monitoring,
     process_emi_defaults,
     refresh_escalations,
     refresh_overdue_statuses,
 )
-from ..schemas import ApplyPenaltyPayload, ProcessDefaultsPayload
+from app.routers.emi.schemas import ApplyPenaltyPayload, ProcessDefaultsPayload
 
 router = APIRouter(tags=["emi"])
 

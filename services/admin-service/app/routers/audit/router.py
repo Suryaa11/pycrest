@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
-from ....core.security import require_roles
-from ..service import get_db
-from ....models.enums import Roles
-from ..service import list_audit_logs
-from ....utils.serializers import normalize_doc
+from app.core.security import require_roles
+from app.database.mongo import get_db
+from app.models.enums import Roles
+from app.services.audit_service import list_audit_logs
+from app.utils.serializers import normalize_doc
 
 router = APIRouter()
 
@@ -127,6 +127,3 @@ async def audit_logs_export(
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=audit-logs.csv"},
     )
-
-
-

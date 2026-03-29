@@ -1,6 +1,6 @@
-from ..database.mongo import get_db
-from ..models.enums import LoanStatus
-from ..utils.id import loan_id_filter, user_id_filter
+from app.database.mongo import get_db
+from app.models.enums import LoanStatus
+from app.utils.id import loan_id_filter, user_id_filter
 
 
 def _mask_pan(value: str | None) -> str | None:
@@ -13,7 +13,7 @@ def _mask_pan(value: str | None) -> str | None:
 
 
 def _sanitize_loan_doc(doc: dict) -> dict:
-    from ..utils.serializers import normalize_doc
+    from app.utils.serializers import normalize_doc
 
     out = normalize_doc(doc)
     if not out.get("pan_masked"):
@@ -31,7 +31,7 @@ def _sanitize_loan_doc(doc: dict) -> dict:
 async def get_admin_approvals_dashboard(days: int = 30):
     db = await get_db()
     from datetime import datetime, timedelta
-    from ..utils.serializers import normalize_doc
+    from app.utils.serializers import normalize_doc
 
     admin_queue_statuses = [
         LoanStatus.PENDING_ADMIN_APPROVAL,
@@ -140,15 +140,15 @@ async def list_ready_for_disbursement():
 
 from datetime import datetime
 from fastapi import HTTPException
-from ..core.security import hash_password
-from ..models.enums import Roles
-from ..utils.sequences import next_customer_id
+from app.core.security import hash_password
+from app.models.enums import Roles
+from app.utils.sequences import next_customer_id
 
 
 async def list_users(limit: int = 500):
     db = await get_db()
     users = await db.staff_users.find({}, {"password": 0}).sort("created_at", -1).to_list(length=limit)
-    from ..utils.serializers import normalize_doc
+    from app.utils.serializers import normalize_doc
     return [normalize_doc(u) for u in users]
 
 
@@ -166,7 +166,7 @@ async def set_user_status(user_id: str, is_active: bool):
     )
 
     user = await db.staff_users.find_one(filt, {"password": 0})
-    from ..utils.serializers import normalize_doc
+    from app.utils.serializers import normalize_doc
     return normalize_doc(user)
 
 
@@ -209,7 +209,7 @@ async def create_staff_user(
         "created_at": datetime.utcnow(),
     }
     res = await db.staff_users.insert_one(doc)
-    from ..utils.serializers import normalize_doc
+    from app.utils.serializers import normalize_doc
     out = {"_id": doc["_id"], **doc}
     return normalize_doc(out)
 
@@ -259,7 +259,7 @@ async def update_staff_user(user_id: str, payload: dict):
     
     await db.staff_users.update_one(filt, {"$set": update_dict})
     updated = await db.staff_users.find_one(filt, {"password": 0})
-    from ..utils.serializers import normalize_doc
+    from app.utils.serializers import normalize_doc
     return normalize_doc(updated)
 
 

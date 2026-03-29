@@ -1,9 +1,9 @@
-﻿from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends
 
-from ....core.security import require_roles
-from ....models.enums import Roles
-from ..service import create_staff_user, list_users, set_user_status
-from ..schemas import StaffCreate, StaffUpdate, UserStatusPayload
+from app.core.security import require_roles
+from app.models.enums import Roles
+from app.services.admin_service import create_staff_user, list_users, set_user_status
+from app.routers.schemas import StaffCreate, StaffUpdate, UserStatusPayload
 
 router = APIRouter()
 
@@ -56,15 +56,13 @@ async def create_staff(payload: StaffCreate, user=Depends(require_roles(Roles.AD
 
 @router.put("/users/{user_id}")
 async def users_update(user_id: str, payload: StaffUpdate, user=Depends(require_roles(Roles.ADMIN))):
-    from ..service import update_staff_user
+    from app.services.admin_service import update_staff_user
 
     return await update_staff_user(user_id, payload.dict(exclude_unset=True))
 
 
 @router.delete("/users/{user_id}")
 async def users_delete(user_id: str, user=Depends(require_roles(Roles.ADMIN))):
-    from ..service import delete_staff_user
+    from app.services.admin_service import delete_staff_user
 
     return await delete_staff_user(user_id)
-
-

@@ -2,7 +2,6 @@ from pydantic_settings import BaseSettings
 from pydantic import ConfigDict
 from typing import Optional
 
-
 class Settings(BaseSettings):
     # Core
     SERVICE_NAME: Optional[str] = "auth-service"
@@ -19,13 +18,13 @@ class Settings(BaseSettings):
 
     # JWT
     SECRET_KEY: Optional[str] = None
-    JWT_SECRET_KEY: str
+    JWT_SECRET_KEY: str  # This is the required field causing the error
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 60 
     ALGORITHM: Optional[str] = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: Optional[int] = 60
 
-    # Service URLs (for gateway communication)
+    # Service URLs
     AUTH_SERVICE_URL: Optional[str] = None
     LOAN_SERVICE_URL: Optional[str] = None
     EMI_SERVICE_URL: Optional[str] = None
@@ -35,16 +34,13 @@ class Settings(BaseSettings):
     ADMIN_SERVICE_URL: Optional[str] = None
     MANAGER_SERVICE_URL: Optional[str] = None
 
-class Config:
-    env_file = ".env"
-
-
-    # ✅ IMPORTANT FIX
+    # ✅ THIS MUST BE INSIDE THE CLASS INDENTATION
     model_config = ConfigDict(
         env_file=".env",
+        env_file_encoding='utf-8',
         case_sensitive=True,
         extra="allow"
     )
 
-
+# Now it will correctly load the variables from .env
 settings = Settings()

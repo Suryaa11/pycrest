@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from typing import Literal
 
-from ....core.security import require_roles
-from ..service import get_db
-from ....models.enums import Roles
-from ....schemas.support import SupportTicketAdminResolve
-from ..service import write_audit_log
-from ....utils.serializers import normalize_doc
+from app.core.security import require_roles
+from app.database.mongo import get_db
+from app.models.enums import Roles
+from app.schemas.support import SupportTicketAdminResolve
+from app.services.audit_service import write_audit_log
+from app.utils.serializers import normalize_doc
 
 router = APIRouter()
 
@@ -60,6 +60,3 @@ async def admin_resolve_support_ticket(
         details={"customer_id": str(doc.get("customer_id") or ""), "closed": bool(payload.close_ticket)},
     )
     return normalize_doc(updated or {})
-
-
-

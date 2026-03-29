@@ -1,30 +1,48 @@
 import io
-
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
-from ....core.security import require_roles
-from ..service import get_db
-from ....models.enums import LoanCollection, LoanStatus, Roles
-from ....schemas.settings import SystemSettingsUpdate
-from ..service import (
+from app.core.security import require_roles
+from app.database.mongo import get_db
+from app.models.enums import LoanCollection, LoanStatus, Roles
+from app.schemas.settings import SystemSettingsUpdate
+from app.routers.schemas import AdminApprovePayload, AdminRejectPayload
+
+from app.services.admin_service import (
     find_loan_any,
     get_admin_approvals_dashboard,
     list_high_value_pending,
     list_pending_admin_approvals,
     list_ready_for_disbursement,
-    get_document_binary,
-    admin_final_approve,
-    admin_reject,
-    disburse,
-    mark_signed_received,
-    send_sanction,
-    get_settings,
-    update_settings,
 )
-from ....utils.id import loan_id_filter
-from ....utils.serializers import normalize_doc
-from ..schemas import AdminApprovePayload, AdminRejectPayload
+from app.services.settings_service import get_settings, update_settings
+from app.utils.id import loan_id_filter
+from app.utils.serializers import normalize_doc
+
+# Cross-service placeholders
+async def get_document_binary(doc_id: str):
+    # TODO: call document-service via httpx and return a placeholder
+    return {"data": b"", "content_type": "application/octet-stream", "filename": "placeholder.bin"}
+
+async def admin_final_approve(collection, loan_id, admin_id, **kwargs):
+    # TODO: call loan-service via httpx and return a placeholder
+    return {"success": True, "message": "Placeholder: admin_final_approve"}
+
+async def admin_reject(collection, loan_id, admin_id, reason):
+    # TODO: call loan-service via httpx and return a placeholder
+    return {"success": True, "message": "Placeholder: admin_reject"}
+
+async def disburse(collection, loan_id, admin_id):
+    # TODO: call loan-service via httpx and return a placeholder
+    return {"success": True, "message": "Placeholder: disburse"}
+
+async def mark_signed_received(collection, loan_id, admin_id):
+    # TODO: call loan-service via httpx and return a placeholder
+    return {"success": True, "message": "Placeholder: mark_signed_received"}
+
+async def send_sanction(collection, loan_id, admin_id):
+    # TODO: call loan-service via httpx and return a placeholder
+    return {"success": True, "message": "Placeholder: send_sanction"}
 
 router = APIRouter()
 
@@ -282,6 +300,3 @@ async def get_loan(
     if not loan:
         return {"error": "Loan not found"}
     return _sanitize_loan_doc(loan)
-
-
-

@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     SERVICE_NAME: Optional[str] = "service"
     PORT: Optional[int] = 8000
     ENVIRONMENT: Optional[str] = "development"
+    API_PREFIX: str = "/api"
 
     # Mongo
     MONGO_URI: Optional[str] = None
