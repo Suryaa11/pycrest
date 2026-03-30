@@ -1,0 +1,377 @@
+version: "3.9"
+
+# ================================================================
+# PayCrest – docker-compose for LOCAL TESTING
+#
+# HOW TO USE:
+#   1. Place this file at the ROOT of your project (see structure below)
+#   2. Run: docker compose up --build
+#   3. Frontend → http://localhost
+#   4. API      → http://localhost:3000/api
+#
+# REQUIRED PROJECT STRUCTURE:
+#   paycrest/                  ← project root (place docker-compose.yaml here)
+#   ├── docker-compose.yaml
+#   ├── frontend/
+#   │   ├── Dockerfile
+#   │   ├── nginx.conf
+#   │   ├── package.json
+#   │   └── src/
+#   ├── api-gateway/
+#   │   ├── Dockerfile
+#   │   ├── package.json
+#   │   └── server.js
+#   ├── auth-service/
+#   │   ├── Dockerfile
+#   │   ├── requirements.txt
+#   │   └── app/
+#   ├── loan-service/          ← same pattern for all Python services
+#   │   ├── Dockerfile
+#   │   ├── requirements.txt
+#   │   └── app/
+#   ... (emi, wallet, payment, verification, admin, manager)
+#
+# PORT CLARITY:
+#   - Python services listen on container port 8000 (uvicorn)
+#   - The PORT env var (3001-3008) is ONLY used by the API gateway
+#     to know which URL to call. It does NOT change what uvicorn binds to.
+#   - In Docker Compose, services talk by container name:
+#     e.g. http://auth-service:8000  (NOT :3001)
+#   - The api-gateway overrides *_SERVICE_URL to use :8000 directly
+# ================================================================
+
+networks:
+  paycrest-net:
+    driver: bridge
+
+volumes:
+  mongo-data:       # Persists MongoDB data between restarts
+  uploads-data:     # Shared uploads folder (loan, wallet, verification, admin, manager)
+
+services:
+
+  # ── MongoDB ────────────────────────────────────────────────────────
+  mongodb:
+    image: mongo:7.0
+    container_name: paycrest-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: pycrest
+      MONGO_INITDB_ROOT_PASSWORD: pycrest123
+      MONGO_INITDB_DATABASE: pycrest
+    ports:
+      - "27017:27017"       # expose to host for debugging (mongo compass etc.)
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - paycrest-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── Auth Service ───────────────────────────────────────────────────
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: paycrest-auth
+    restart: unless-stopped
+    environment:
+      # Overrides the Windows .env path — Docker runs on Linux
+      MONGODB_URI: mongodb://pycrest:pycrest123@mongodb:27017/pycrest?authSource=admin
+      MONGODB_DB: pycrest
+      JWT_SECRET_KEY: pycrest_jwt_secret_devops_2024
+      JWT_SECRET: pycrest_jwt_secret_devops_2024
+      JWT_ALGORITHM: HS256
+      JWT_EXPIRE_MINUTES: "60"
+      INTERNAL_SERVICE_TOKEN: e9ccbcbfd93e305d56e67a751664bd4b79ed32b23a896cc71958b98008f0fbcb
+      # In Compose, all services talk on :8000 (uvicorn's actual port)
+      AUTH_SERVICE_URL: http://auth-service:8000
+      LOAN_SERVICE_URL: http://loan-service:8000
+      EMI_SERVICE_URL: http://emi-service:8000
+      WALLET_SERVICE_URL: http://wallet-service:8000
+      PAYMENT_SERVICE_URL: http://payment-service:8000
+      VERIFICATION_SERVICE_URL: http://verification-service:8000
+      ADMIN_SERVICE_URL: http://admin-service:8000
+      MANAGER_SERVICE_URL: http://manager-service:8000
+    expose:
+      - "8000"              # only reachable INSIDE paycrest-net
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - paycrest-net
+
+  # ── Loan Service ───────────────────────────────────────────────────
+  loan-service:
+    build:
+      context: ./loan-service
+      dockerfile: Dockerfile
+    container_name: paycrest-loan
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: mongodb://pycrest:pycrest123@mongodb:27017/pycrest?authSource=admin
+      MONGODB_DB: pycrest
+      JWT_SECRET: pycrest_jwt_secret_devops_2024
+      JWT_ALGORITHM: HS256
+      INTERNAL_SERVICE_TOKEN: e9ccbcbfd93e305d56e67a751664bd4b79ed32b23a896cc71958b98008f0fbcb
+      # Override Windows path from .env – use Linux container path
+      UPLOAD_BASE_PATH: /app/uploads
+      AUTH_SERVICE_URL: http://auth-service:8000
+      LOAN_SERVICE_URL: http://loan-service:8000
+      EMI_SERVICE_URL: http://emi-service:8000
+      WALLET_SERVICE_URL: http://wallet-service:8000
+      PAYMENT_SERVICE_URL: http://payment-service:8000
+      VERIFICATION_SERVICE_URL: http://verification-service:8000
+      ADMIN_SERVICE_URL: http://admin-service:8000
+      MANAGER_SERVICE_URL: http://manager-service:8000
+    volumes:
+      - uploads-data:/app/uploads   # shared with other upload-needing services
+    expose:
+      - "8000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - paycrest-net
+
+  # ── EMI Service ────────────────────────────────────────────────────
+  emi-service:
+    build:
+      context: ./emi-service
+      dockerfile: Dockerfile
+    container_name: paycrest-emi
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: mongodb://pycrest:pycrest123@mongodb:27017/pycrest?authSource=admin
+      MONGODB_DB: pycrest
+      JWT_SECRET: pycrest_jwt_secret_devops_2024
+      JWT_ALGORITHM: HS256
+      INTERNAL_SERVICE_TOKEN: e9ccbcbfd93e305d56e67a751664bd4b79ed32b23a896cc71958b98008f0fbcb
+      AUTH_SERVICE_URL: http://auth-service:8000
+      LOAN_SERVICE_URL: http://loan-service:8000
+      EMI_SERVICE_URL: http://emi-service:8000
+      WALLET_SERVICE_URL: http://wallet-service:8000
+      PAYMENT_SERVICE_URL: http://payment-service:8000
+      VERIFICATION_SERVICE_URL: http://verification-service:8000
+      ADMIN_SERVICE_URL: http://admin-service:8000
+      MANAGER_SERVICE_URL: http://manager-service:8000
+    expose:
+      - "8000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - paycrest-net
+
+  # ── Wallet Service ─────────────────────────────────────────────────
+  wallet-service:
+    build:
+      context: ./wallet-service
+      dockerfile: Dockerfile
+    container_name: paycrest-wallet
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: mongodb://pycrest:pycrest123@mongodb:27017/pycrest?authSource=admin
+      MONGODB_DB: pycrest
+      JWT_SECRET: pycrest_jwt_secret_devops_2024
+      JWT_ALGORITHM: HS256
+      INTERNAL_SERVICE_TOKEN: e9ccbcbfd93e305d56e67a751664bd4b79ed32b23a896cc71958b98008f0fbcb
+      UPLOAD_BASE_PATH: /app/uploads
+      AUTH_SERVICE_URL: http://auth-service:8000
+      LOAN_SERVICE_URL: http://loan-service:8000
+      EMI_SERVICE_URL: http://emi-service:8000
+      WALLET_SERVICE_URL: http://wallet-service:8000
+      PAYMENT_SERVICE_URL: http://payment-service:8000
+      VERIFICATION_SERVICE_URL: http://verification-service:8000
+      ADMIN_SERVICE_URL: http://admin-service:8000
+      MANAGER_SERVICE_URL: http://manager-service:8000
+    volumes:
+      - uploads-data:/app/uploads
+    expose:
+      - "8000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - paycrest-net
+
+  # ── Payment Service ────────────────────────────────────────────────
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: paycrest-payment
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: mongodb://pycrest:pycrest123@mongodb:27017/pycrest?authSource=admin
+      MONGODB_DB: pycrest
+      JWT_SECRET: pycrest_jwt_secret_devops_2024
+      JWT_ALGORITHM: HS256
+      INTERNAL_SERVICE_TOKEN: e9ccbcbfd93e305d56e67a751664bd4b79ed32b23a896cc71958b98008f0fbcb
+      AUTH_SERVICE_URL: http://auth-service:8000
+      LOAN_SERVICE_URL: http://loan-service:8000
+      EMI_SERVICE_URL: http://emi-service:8000
+      WALLET_SERVICE_URL: http://wallet-service:8000
+      PAYMENT_SERVICE_URL: http://payment-service:8000
+      VERIFICATION_SERVICE_URL: http://verification-service:8000
+      ADMIN_SERVICE_URL: http://admin-service:8000
+      MANAGER_SERVICE_URL: http://manager-service:8000
+    expose:
+      - "8000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - paycrest-net
+
+  # ── Verification Service ───────────────────────────────────────────
+  verification-service:
+    build:
+      context: ./verification-service
+      dockerfile: Dockerfile
+    container_name: paycrest-verification
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: mongodb://pycrest:pycrest123@mongodb:27017/pycrest?authSource=admin
+      MONGODB_DB: pycrest
+      JWT_SECRET: pycrest_jwt_secret_devops_2024
+      JWT_ALGORITHM: HS256
+      INTERNAL_SERVICE_TOKEN: e9ccbcbfd93e305d56e67a751664bd4b79ed32b23a896cc71958b98008f0fbcb
+      UPLOAD_BASE_PATH: /app/uploads
+      AUTH_SERVICE_URL: http://auth-service:8000
+      LOAN_SERVICE_URL: http://loan-service:8000
+      EMI_SERVICE_URL: http://emi-service:8000
+      WALLET_SERVICE_URL: http://wallet-service:8000
+      PAYMENT_SERVICE_URL: http://payment-service:8000
+      VERIFICATION_SERVICE_URL: http://verification-service:8000
+      ADMIN_SERVICE_URL: http://admin-service:8000
+      MANAGER_SERVICE_URL: http://manager-service:8000
+    volumes:
+      - uploads-data:/app/uploads
+    expose:
+      - "8000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - paycrest-net
+
+  # ── Admin Service ──────────────────────────────────────────────────
+  admin-service:
+    build:
+      context: ./admin-service
+      dockerfile: Dockerfile
+    container_name: paycrest-admin
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: mongodb://pycrest:pycrest123@mongodb:27017/pycrest?authSource=admin
+      MONGODB_DB: pycrest
+      JWT_SECRET: pycrest_jwt_secret_devops_2024
+      JWT_ALGORITHM: HS256
+      INTERNAL_SERVICE_TOKEN: e9ccbcbfd93e305d56e67a751664bd4b79ed32b23a896cc71958b98008f0fbcb
+      UPLOAD_BASE_PATH: /app/uploads
+      AUTH_SERVICE_URL: http://auth-service:8000
+      LOAN_SERVICE_URL: http://loan-service:8000
+      EMI_SERVICE_URL: http://emi-service:8000
+      WALLET_SERVICE_URL: http://wallet-service:8000
+      PAYMENT_SERVICE_URL: http://payment-service:8000
+      VERIFICATION_SERVICE_URL: http://verification-service:8000
+      ADMIN_SERVICE_URL: http://admin-service:8000
+      MANAGER_SERVICE_URL: http://manager-service:8000
+    volumes:
+      - uploads-data:/app/uploads
+    expose:
+      - "8000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - paycrest-net
+
+  # ── Manager Service ────────────────────────────────────────────────
+  manager-service:
+    build:
+      context: ./manager-service
+      dockerfile: Dockerfile
+    container_name: paycrest-manager
+    restart: unless-stopped
+    environment:
+      MONGODB_URI: mongodb://pycrest:pycrest123@mongodb:27017/pycrest?authSource=admin
+      MONGODB_DB: pycrest
+      JWT_SECRET: pycrest_jwt_secret_devops_2024
+      JWT_ALGORITHM: HS256
+      INTERNAL_SERVICE_TOKEN: e9ccbcbfd93e305d56e67a751664bd4b79ed32b23a896cc71958b98008f0fbcb
+      UPLOAD_BASE_PATH: /app/uploads
+      AUTH_SERVICE_URL: http://auth-service:8000
+      LOAN_SERVICE_URL: http://loan-service:8000
+      EMI_SERVICE_URL: http://emi-service:8000
+      WALLET_SERVICE_URL: http://wallet-service:8000
+      PAYMENT_SERVICE_URL: http://payment-service:8000
+      VERIFICATION_SERVICE_URL: http://verification-service:8000
+      ADMIN_SERVICE_URL: http://admin-service:8000
+      MANAGER_SERVICE_URL: http://manager-service:8000
+    volumes:
+      - uploads-data:/app/uploads
+    expose:
+      - "8000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - paycrest-net
+
+  # ── API Gateway ────────────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: paycrest-gateway
+    restart: unless-stopped
+    environment:
+      PORT: "3000"
+      # Allow requests from frontend (Vite dev server OR nginx)
+      FRONTEND_ORIGIN: http://localhost
+      # All services are on :8000 inside the Docker network
+      AUTH_SERVICE_URL: http://auth-service:8000
+      LOAN_SERVICE_URL: http://loan-service:8000
+      EMI_SERVICE_URL: http://emi-service:8000
+      WALLET_SERVICE_URL: http://wallet-service:8000
+      PAYMENT_SERVICE_URL: http://payment-service:8000
+      VERIFICATION_SERVICE_URL: http://verification-service:8000
+      ADMIN_SERVICE_URL: http://admin-service:8000
+      MANAGER_SERVICE_URL: http://manager-service:8000
+    ports:
+      - "3000:3000"         # exposed to host for direct API testing
+    depends_on:
+      - auth-service
+      - loan-service
+      - emi-service
+      - wallet-service
+      - payment-service
+      - verification-service
+      - admin-service
+      - manager-service
+    networks:
+      - paycrest-net
+
+  # ── Frontend ───────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Vite bakes this URL at BUILD time into the JS bundle
+        # Must point to wherever your API gateway is reachable FROM THE BROWSER
+        VITE_API_BASE_URL: http://localhost:3000/api
+    container_name: paycrest-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"             # visit http://localhost in browser
+    depends_on:
+      - api-gateway
+    networks:
+      - paycrest-net
