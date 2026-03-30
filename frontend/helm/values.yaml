@@ -1,0 +1,46 @@
+replicaCount: 1
+
+image:
+  repository: your-dockerhub-username/frontend
+  tag: latest
+  pullPolicy: IfNotPresent
+  build: true   # for Helm, just a flag to indicate local build if using build pipeline
+
+service:
+  type: ClusterIP
+  port: 3000
+
+env:
+  VITE_API_BASE_URL: "http://localhost:3000/api"
+  SERVICE_NAME: "frontend-service"
+  PORT: 3000
+  MONGODB_URI: "mongodb://pycrest:pycrest123@mongodb:27017/pycrest?authSource=admin"
+  MONGODB_DB: "pycrest"
+  JWT_SECRET: "pycrest_jwt_secret_devops_2024"
+  JWT_ALGORITHM: "HS256"
+  JWT_EXPIRE_MINUTES: "60"
+  ENVIRONMENT: "development"
+  INTERNAL_SERVICE_TOKEN: "e9ccbcbfd93e305d56e67a751664bd4b79ed32b23a896cc71958b98008f0fbcb"
+  UPLOAD_BASE_PATH: "/uploads"
+  AUTH_SERVICE_URL: "http://auth-service:3001"
+  LOAN_SERVICE_URL: "http://loan-service:3002"
+  EMI_SERVICE_URL: "http://emi-service:3003"
+  WALLET_SERVICE_URL: "http://wallet-service:3004"
+  PAYMENT_SERVICE_URL: "http://payment-service:3005"
+  VERIFICATION_SERVICE_URL: "http://verification-service:3006"
+  ADMIN_SERVICE_URL: "http://admin-service:3007"
+  MANAGER_SERVICE_URL: "http://manager-service:3008"
+
+resources:
+  limits:
+    cpu: "500m"
+    memory: "512Mi"
+  requests:
+    cpu: "250m"
+    memory: "256Mi"
+
+hpa:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 50
