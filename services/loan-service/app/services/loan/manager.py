@@ -18,9 +18,15 @@ from .calculations import compute_emi
 # MANAGER DASHBOARD
 # =========================
 async def list_manager_loans(manager_id: str):
+    from ...database.mongo import get_db
     db = await get_db()
+ 
+    # ✅ FIX Bug 3: include all four loan types
     loans = await db.personal_loans.find({}).to_list(200)
     loans += await db.vehicle_loans.find({}).to_list(200)
+    loans += await db.education_loans.find({}).to_list(200)
+    loans += await db.home_loans.find({}).to_list(200)
+ 
     return [normalize_doc(l) for l in loans]
 
 

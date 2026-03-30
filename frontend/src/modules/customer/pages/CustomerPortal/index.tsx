@@ -12,6 +12,8 @@ import LoansTab from "./components/LoansTab";
 import TrackTab from "./components/TrackTab";
 import ProfileTab from "./components/ProfileTab";
 import type { CustomerNotification } from "./components/CustomerNotifications";
+import { payEmiWallet } from '../../../../modules/customer/services/customerApi';
+
 import type { SupportTicket } from "./components/CustomerSupport";
 import {
   buildTimeline,
