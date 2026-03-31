@@ -1,0 +1,40 @@
+replicaCount: 2
+
+image:
+  repository: admin-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3007
+
+config:
+  SERVICE_NAME: admin-service
+  PORT: "3007"
+  ENVIRONMENT: development
+  MONGODB_DB: pycrest
+  JWT_ALGORITHM: HS256
+  JWT_EXPIRE_MINUTES: "60"
+  UPLOAD_BASE_PATH: /app/uploads
+  AUTH_SERVICE_URL: http://auth-service:3001
+  LOAN_SERVICE_URL: http://loan-service:3002
+  EMI_SERVICE_URL: http://emi-service:3003
+  WALLET_SERVICE_URL: http://wallet-service:3004
+  PAYMENT_SERVICE_URL: http://payment-service:3005
+  VERIFICATION_SERVICE_URL: http://verification-service:3006
+  ADMIN_SERVICE_URL: http://admin-service:3007
+  MANAGER_SERVICE_URL: http://manager-service:3008
+
+secrets:
+  MONGODB_URI: mongodb://pycrest:pycrest123@mongodb:27017/pycrest?authSource=admin
+  JWT_SECRET: pycrest_jwt_secret_devops_2024
+  INTERNAL_SERVICE_TOKEN: e9ccbcbfd93e305d56e67a751664bd4b79ed32b23a896cc71958b98008f0fbcb
+
+gateway:
+  name: kgateway
+  path: /admin
+
+probes:
+  readinessPath: /health
+  livenessPath: /health

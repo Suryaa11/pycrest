@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+        - name: auth-service
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: SERVICE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: SERVICE_NAME
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: PORT
+            - name: ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: ENVIRONMENT
+            - name: MONGODB_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: MONGODB_DB
+            - name: JWT_ALGORITHM
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: JWT_ALGORITHM
+            - name: JWT_EXPIRE_MINUTES
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: JWT_EXPIRE_MINUTES
+            - name: ACCESS_TOKEN_EXPIRE_MINUTES
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: ACCESS_TOKEN_EXPIRE_MINUTES
+            - name: AUTH_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: AUTH_SERVICE_URL
+            - name: LOAN_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: LOAN_SERVICE_URL
+            - name: EMI_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: EMI_SERVICE_URL
+            - name: WALLET_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: WALLET_SERVICE_URL
+            - name: PAYMENT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: PAYMENT_SERVICE_URL
+            - name: VERIFICATION_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: VERIFICATION_SERVICE_URL
+            - name: ADMIN_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: ADMIN_SERVICE_URL
+            - name: MANAGER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-service-config
+                  key: MANAGER_SERVICE_URL
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: auth-service-secret
+                  key: MONGODB_URI
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: auth-service-secret
+                  key: JWT_SECRET_KEY
+            - name: INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: auth-service-secret
+                  key: INTERNAL_SERVICE_TOKEN
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readinessPath }}
+              port: {{ .Values.service.port }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.livenessPath }}
+              port: {{ .Values.service.port }}
