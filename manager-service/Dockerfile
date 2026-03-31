@@ -26,6 +26,9 @@ WORKDIR /app
 # Copy installed packages from builder
 COPY --from=builder /install /usr/local
 
+# Create uploads directory with correct ownership before switching to non-root user
+RUN mkdir -p /app/uploads && chown -R appuser:appgroup /app/uploads
+
 # Copy app source (owned by appuser)
 COPY --chown=appuser:appgroup app ./app
 
@@ -36,8 +39,6 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD curl -f http://localhost:8000/health || exit 1
 
-# NOTE: PORT env var in .env is for the API Gateway to CALL this service,
-# not what uvicorn binds to. Uvicorn always binds to 8000 here.
 CMD ["uvicorn", "app.main:app", \
      "--host", "0.0.0.0", \
      "--port", "8000", \
