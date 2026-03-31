@@ -1,18 +1,19 @@
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'services', 'auth-service'))
-
-os.environ["MONGODB_URI"] = "mongodb://pycrest:pycrest123@localhost:27017/pycrest?authSource=admin"
-os.environ["MONGODB_DB"] = "pycrest"
-
-import asyncio
-from getpass import getpass
 from datetime import datetime
 
+# 1. Setup paths
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'services', 'auth-service'))
+
+# 2. Set Environment Variables BEFORE importing app modules
+os.environ["MONGODB_URI"] = "mongodb://pycrest:pycrest123@paycrest-mongodb:27017/pycrest?authSource=admin"
+os.environ["MONGODB_DB"] = "pycrest"
+
+# 3. Now import your app's database and security logic
+import asyncio
+from getpass import getpass
 from app.database.mongo import get_db
 from app.core.security import hash_password
-from app.models.enums import Roles
-from app.utils.sequences import next_customer_id
 
 async def create_admin(email: str, full_name: str, password: str):
     db = await get_db()
