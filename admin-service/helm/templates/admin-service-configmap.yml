@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: admin-service-config
+data:
+  SERVICE_NAME: {{ .Values.config.SERVICE_NAME }}
+  PORT: {{ .Values.config.PORT }}
+  ENVIRONMENT: {{ .Values.config.ENVIRONMENT }}
+  MONGODB_DB: {{ .Values.config.MONGODB_DB }}
+  JWT_ALGORITHM: {{ .Values.config.JWT_ALGORITHM }}
+  JWT_EXPIRE_MINUTES: {{ .Values.config.JWT_EXPIRE_MINUTES }}
+  AUTH_SERVICE_URL: {{ .Values.config.AUTH_SERVICE_URL }}
+  LOAN_SERVICE_URL: {{ .Values.config.LOAN_SERVICE_URL }}
+  EMI_SERVICE_URL: {{ .Values.config.EMI_SERVICE_URL }}
+  WALLET_SERVICE_URL: {{ .Values.config.WALLET_SERVICE_URL }}
+  PAYMENT_SERVICE_URL: {{ .Values.config.PAYMENT_SERVICE_URL }}
+  VERIFICATION_SERVICE_URL: {{ .Values.config.VERIFICATION_SERVICE_URL }}
+  ADMIN_SERVICE_URL: {{ .Values.config.ADMIN_SERVICE_URL }}
+  MANAGER_SERVICE_URL: {{ .Values.config.MANAGER_SERVICE_URL }}

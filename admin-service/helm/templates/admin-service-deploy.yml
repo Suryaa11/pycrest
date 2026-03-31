@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: admin-service
+  template:
+    metadata:
+      labels:
+        app: admin-service
+    spec:
+      containers:
+        - name: admin-service
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: SERVICE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: admin-service-config
+                  key: SERVICE_NAME
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: admin-service-config
+                  key: PORT
+            - name: ENVIRONMENT
+              valueFrom:
+                configMapKeyRef:
+                  name: admin-service-config
+                  key: ENVIRONMENT
+            - name: MONGODB_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: admin-service-config
+                  key: MONGODB_DB
+            - name: JWT_ALGORITHM
+              valueFrom:
+                configMapKeyRef:
+                  name: admin-service-config
+                  key: JWT_ALGORITHM
+            - name: JWT_EXPIRE_MINUTES
+              valueFrom:
+                configMapKeyRef:
+                  name: admin-service-config
+                  key: JWT_EXPIRE_MINUTES
+            - name: AUTH_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: admin-service-config
+                  key: AUTH_SERVICE_URL
+            - name: LOAN_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: admin-service-config
+                  key: LOAN_SERVICE_URL
+            - name: EMI_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: admin-service-config
+                  key: EMI_SERVICE_URL
+            - name: WALLET_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: admin-service-config
+                  key: WALLET_SERVICE_URL
+            - name: PAYMENT_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: admin-service-config
+                  key: PAYMENT_SERVICE_URL
+            - name: VERIFICATION_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: admin-service-config
+                  key: VERIFICATION_SERVICE_URL
+            - name: ADMIN_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: admin-service-config
+                  key: ADMIN_SERVICE_URL
+            - name: MANAGER_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: admin-service-config
+                  key: MANAGER_SERVICE_URL
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: admin-service-secret
+                  key: MONGODB_URI
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: admin-service-secret
+                  key: JWT_SECRET
+            - name: INTERNAL_SERVICE_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: admin-service-secret
+                  key: INTERNAL_SERVICE_TOKEN
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readinessPath }}
+              port: {{ .Values.service.port }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.livenessPath }}
+              port: {{ .Values.service.port }}
