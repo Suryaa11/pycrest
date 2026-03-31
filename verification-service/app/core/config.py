@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: Optional[str] = "development"
 
     MONGODB_URI: str = "mongodb://localhost:27017"
-    MONGODB_DB: str = "pay_crest"
+    MONGODB_DB: str = "pycrest"
 
     JWT_SECRET: str = "CHANGE_ME"
     JWT_ALGORITHM: str = "HS256"
@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     INTERNAL_SERVICE_TOKEN: str = "CHANGE_ME"
     UPLOAD_BASE_PATH: str = "./uploads"
 
-    LOAN_SERVICE_URL: str = "http://localhost:3002"
+    LOAN_SERVICE_URL: Optional[str] = None
     AUTH_SERVICE_URL: Optional[str] = None
     EMI_SERVICE_URL: Optional[str] = None
     WALLET_SERVICE_URL: Optional[str] = None

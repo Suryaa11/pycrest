@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     ENVIRONMENT: Optional[str] = "development"
 
     MONGODB_URI: str = "mongodb://localhost:27017"
-    MONGODB_DB: str = "pay_crest"
+    MONGODB_DB: str = "pycrest"
 
     IDEMPOTENCY_ENABLED: bool = True
     IDEMPOTENCY_TTL_HOURS: int = 24

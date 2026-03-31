@@ -7,3 +7,4 @@ pymongo==4.16.0
 bcrypt==4.1.2
 python_jose==3.3.0
 starlette==1.0.0
+uvicorn[standard]==0.29.0

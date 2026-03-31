@@ -159,6 +159,7 @@ services:
       VERIFICATION_SERVICE_URL: http://verification-service:8000
       ADMIN_SERVICE_URL: http://admin-service:8000
       MANAGER_SERVICE_URL: http://manager-service:8000
+      AUDIT_SERVICE_URL: http://admin-service:8000
     expose:
       - "8000"
     depends_on:
@@ -334,7 +335,7 @@ services:
     environment:
       PORT: "3000"
       # Allow requests from frontend (Vite dev server OR nginx)
-      FRONTEND_ORIGIN: http://localhost
+      FRONTEND_ORIGIN: http://44.223.16.184
       # All services are on :8000 inside the Docker network
       AUTH_SERVICE_URL: http://auth-service:8000
       LOAN_SERVICE_URL: http://loan-service:8000
@@ -366,7 +367,7 @@ services:
       args:
         # Vite bakes this URL at BUILD time into the JS bundle
         # Must point to wherever your API gateway is reachable FROM THE BROWSER
-        VITE_API_BASE_URL: http://localhost:3000/api
+        VITE_API_BASE_URL: http://44.223.16.184:3000/api
     container_name: paycrest-frontend
     restart: unless-stopped
     ports:

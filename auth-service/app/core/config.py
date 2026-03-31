@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     DEFAULT_IFSC: str = "TEST0001234"
 
     MONGODB_URI: str = "mongodb://localhost:27017"
-    MONGODB_DB: str = "pay_crest"
+    MONGODB_DB: str = "pycrest"
 
     JWT_SECRET: str = "CHANGE_ME"
     JWT_SECRET_KEY: Optional[str] = None
